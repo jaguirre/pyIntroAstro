@@ -1,0 +1,8 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/pyIntroAstro.egg-info/PKG-INFO
+src/pyIntroAstro.egg-info/SOURCES.txt
+src/pyIntroAstro.egg-info/dependency_links.txt
+src/pyIntroAstro.egg-info/top_level.txt

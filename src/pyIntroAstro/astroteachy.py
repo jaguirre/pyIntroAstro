@@ -28,13 +28,23 @@ def xor(p, q):
 
 def cart2pol(x,y):
     r = np.sqrt(np.power(x,2)+np.power(y,2))
-    theta = np.unwrap(np.arctan2(y,x))
+
+    #theta = np.unwrap(np.arctan2(y,x))
+    theta = np.arctan2(y,x)
+    
     return (r,theta)
 
 def pol2cart(rho, phi):
     x = rho * np.cos(phi)
     y = rho * np.sin(phi)
     return(x, y)
+
+
+def EllipsePolar(theta, a, e):
+
+    r = a * (1-np.power(e,2))/(1+e*np.cos(theta))
+
+    return r
 
 # Some pretty ways to print astropy units
 def Qprint(quantity_in,sigfig=3,style='s'):

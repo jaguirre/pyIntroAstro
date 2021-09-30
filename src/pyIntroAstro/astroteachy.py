@@ -5,7 +5,7 @@ import pylab as plt
 #import astropy as astro
 from astropy import units as u
 from astropy import constants as c
-from scipy.integrate import odeint
+from scipy.integrate import odeint, solve_ivp
 import scipy.integrate as integrate
 from scipy.signal import fftconvolve as fconv
 #from astropy.analytic_functions import blackbody_lambda
@@ -610,3 +610,64 @@ def RadioactiveDating(t_half,age=None,fraction=None):
         returnval = fraction
     return returnval
 
+def Quadratic(a, b, c):
+    
+    rt = np.sqrt(np.power(b, 2) - 4*a*c)
+
+    return ((-b + rt)/(2*a), (-b - rt)/(2*a))
+
+def ae_from_init(X0, VY0):
+    
+    a = 0.5/np.abs(0.5 * np.power(VY0, 2) - 1/X0)
+    
+    e = np.sqrt(1 - np.power(X0*VY0, 2)/a)
+    
+    return (a, e)
+
+def init_from_ae(a, e):
+    
+    X0 = a*(1-e) # assume we always start at perihelion
+    VY0 = np.sqrt( a * (1-np.power(e, 2)) ) / X0
+    
+    return(X0, VY0)
+
+def TwoBody2DCartEqMo(tau, Vec):
+    
+    """ The nondimensional two-body problem in Cartesian coordinates.  
+    The order of the components of the input vector Vec is 
+    X, dX/dtau, Y, dY/dtau.  
+    
+    Appropriate for use with scipy.integrate.solve_ivp
+    Also backwards compatible with scipy.integrate.odeint using tfirst=True
+    
+    """
+    
+    # Rename the values in the input vector Vec to be more readable by humans   
+    X = Vec[0]
+    VX = Vec[1]
+    Y = Vec[2]
+    VY = Vec[3]  
+    
+    # Calculate r^2
+    r2 = np.power(X, 2) + np.power(Y, 2)
+    
+    # Initialize the right hand side
+    dVecdtau = [0,0,0,0]
+    
+    dVecdtau[0] = VX 
+    dVecdtau[1] = -1./np.power(r2, 3./2.) * X 
+    dVecdtau[2] = VY 
+    dVecdtau[3] = -1./np.power(r2, 3./2.) * Y 
+    
+    return dVecdtau
+
+def TwoBody2DCartIVP(tau, init):
+    
+    orbit = solve_ivp(TwoBody2DCartEqMo, [tau[0], tau[-1]], init, t_eval = tau, method='LSODA', rtol=1e-6)
+    
+    X = orbit.y[0,:]
+    Y = orbit.y[2,:]
+    R = np.sqrt(np.power(X,2)+np.power(Y,2))
+    theta = np.unwrap(np.arctan2(Y, X))
+    
+    return {'X': X, 'VX': orbit.y[1,:], 'Y': Y, 'VY': orbit.y[3,:], 'tau': orbit.t, 'init': init, 'R': R, 'theta': theta}

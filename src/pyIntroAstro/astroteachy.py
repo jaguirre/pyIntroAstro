@@ -263,8 +263,10 @@ def TwoBodyOrbit(t,init):
     
 # --- Useful relations for the two body problem ---
 
-def ReducedMass(m1,m2):
-    return m1*m2/(m1+m2)
+@u.quantity_input
+def ReducedMass(m1 : u.kg, m2 : u.kg) -> u.kg:
+    
+    return m1 * m2/(m1 + m2)
  
 def TwoBodyEnergy(m1,m2,r,v):
     mu = ReducedMass(m1,m2)
@@ -277,9 +279,11 @@ def SemiMajorAxis(m1,m2,E):
     a = a.to(u.meter)
     return a
 
-def EfromSemiMajorAxis(m1,m2,a):
+@u.quantity_input
+def EfromSemiMajorAxis(m1 : u.kg, m2 : u.kg, a : u.m) -> u.J:
+    
     E = - c.G * m1 * m2 / (2* np.abs(a))
-    E = E.to(u.J)
+    
     return E
     
 def Eccentricity(m1,m2,E,L):
@@ -288,9 +292,11 @@ def Eccentricity(m1,m2,E,L):
     e = (np.sqrt(1+2*E*np.power(L,2)/(np.power(c.G*M,2)*np.power(mu,3)))).to(u.dimensionless_unscaled)
     return e
 
-def Period(m1,m2,a):
+@u.quantity_input
+def Period(m1 : u.kg, m2 : u.g, a : u.m) -> u.s:
+    
     P = np.sqrt(np.power(2*np.pi,2) * np.power(a,3) / (c.G * (m1+m2)))
-    P = P.to(u.second)
+    
     return P
     
 def PhysicalOrbit(m1,m2,a,e):
@@ -341,14 +347,15 @@ def PhysicalOrbit(m1,m2,a,e):
     return soln
     
 # ----- Hydrogen atom quantities
-def HAtomEnergy(n,Z=1):
+@u.quantity_input
+def HAtomEnergy(n, Z=1) -> u.J:
     """ Returns the energy of the level with principal quantum number n in the
     Bohr model of the hydrogen atom.  The energy is negative (relative to 0, 
     which is unbound), and given in eV.  The optional argument Z gives the 
     charge on the nucleus, in units of the proton charge. """
     E = c.m_e * np.power(c.c,2) / 2. * np.power(c.alpha,2) * np.power(Z,2)/np.power(n,2)
-    E = -E.to(u.eV)
-    return E
+    
+    return -E
     
 def HAtomDeltaE(n_i,n_f,Z=1,wavelength=False):
     """ Calculates the change in energy in the Bohr model of the hydrogen atom 
@@ -391,6 +398,51 @@ def MeanMolecMass(molmass,frac,type=None):
     if (type=='mass'):
         mu = 1./((np.array(frac)/np.array(molmass)).sum())
     return mu
+
+@u.quantity_input
+def BoltzmannFactor(g, E : u.J, T : u.K) -> u.dimensionless_unscaled:
+    
+    """ Returns the Boltzmann factor for degeneracy g, energy E and temperature T """   
+    
+    f = g * np.exp(-E/(c.k_B*T))
+    
+    return f
+
+def gH(n):
+    
+    return 2*np.square(n)
+
+@u.quantity_input
+def PartitionFunction_H(T : u.K, nmax=5) -> u.dimensionless_unscaled:
+    
+    """ Calculate an approximation to the hydrogen partition function (truncated at nmax) """
+    
+    partition_function = 0
+    
+    for n in np.arange(1,nmax+1):
+        
+        En = HAtomEnergy(n)
+        
+        partition_function += BoltzmannFactor(gH(n), En, T)
+        
+    return partition_function
+
+def Probability_H(n_array, T):
+    
+    q_H = PartitionFunction_H(T, nmax=n_array.max())
+    
+    P_H = BoltzmannFactor(gH(n_array), HAtomEnergy(n_array), T) / q_H
+    
+    return P_H
+
+@u.quantity_input
+def BBAvgE(T : u.K) -> u.J:
+    
+    E = np.power(np.pi, 4)/(30*zeta(3)) * c.k_B * T
+    
+    #E2 = 3.729e-23 * u.J/u.K * T 
+    
+    return E1
 
 @u.quantity_input
 def Boltzmann(g1,g2,E1 : u.J,E2 : u.J,T : u.K) -> u.dimensionless_unscaled:
@@ -473,7 +525,7 @@ def Lorentz(nu,nu0,gamma_n):
     phi = 1/np.pi * k / (np.power(x,2)+np.power(k,2))
     return phi
     
-def Doppler(nu,nu0,T,mu,):
+def Doppler(nu,nu0,T,mu):
     C = c.c.value
     #m_p = c.m_p.value    
     s = SigmaV(T,mu)
@@ -496,7 +548,7 @@ def Voigt(lambda0,gamma_n,mu,T):
     
     return {'Phi':Phi,'nu':nu}
 
-def PhotonCrossSection(f,phi):
+def PhotonCrossSection(f):
     """ Calculate the cross section for a given oscillator strength f and line
     profile phi """
     sigma = np.power(c.e.si,2)/(4.*c.eps0*c.m_e*c.c) * f * phi
@@ -574,11 +626,14 @@ def Radius(Mass):
             R.append(1.33 * np.power(M,0.555))
     return np.array(R)
 
-def ScaleHeight(g,T,mu):
+@u.quantity_input
+def ScaleHeight(g : u.m/u.s**2, T : u.K, mu) -> u.m:
+    
     mbar = mu * c.m_p
     z_s = c.k_B * T / (mbar * g)
-    z_s = z_s.to(u.m)
+    
     return z_s
+
 
 def P_c(M,R):
     P = 3.*c.G*np.power(M,2)/(8.*np.pi*np.power(R,4))
@@ -635,7 +690,7 @@ def TwoBody2DCartEqMo(tau, Vec):
     
     """ The nondimensional two-body problem in Cartesian coordinates.  
     The order of the components of the input vector Vec is 
-    X, dX/dtau, Y, dY/dtau.  
+    X, X/dtau, Y, dY/dtau.  
     
     Appropriate for use with scipy.integrate.solve_ivp
     Also backwards compatible with scipy.integrate.odeint using tfirst=True

@@ -539,7 +539,7 @@ def Lorentz(nu,nu0,gamma_n):
 def Doppler(nu,nu0,T,mu):
     C = c.c.value
     #m_p = c.m_p.value    
-    s = SigmaV(T,mu)
+    s = SigmaV(T,mu).value
     x = nu - nu0
     exparg = - np.power(x * C / ( nu0 * s), 2)/2.
     phi = C/nu0 * np.power(np.sqrt(2*np.pi) * s, -1) * np.exp(exparg)
@@ -551,19 +551,22 @@ def Voigt(lambda0,gamma_n,mu,T):
     nu0 = c.c.value/lambda0
     frac = 0.02
     nu = np.linspace(nu0*(1-frac),nu0*(1+frac),num=np.power(2,20))
+    x = (nu-nu0)/nu0
     
     phi_L = Lorentz(nu,nu0,gamma_n)
     phi_D = Doppler(nu,nu0,T,mu)
     phi_V = fconv(phi_L,phi_D,mode='same')
+    V_norm = integrate.trapz(phi_V,x=nu)
+    phi_V /= V_norm
     Phi = phi_V/phi_V.max()
     
-    return {'Phi':Phi,'nu':nu}
+    return {'Phi':Phi,'nu':nu, 'phi_L':phi_L, 'phi_D':phi_D, 'phi_V':phi_V, 'x':x}
 
-def PhotonCrossSection(f):
+def BoundBoundCrossSection(f,phi):
     """ Calculate the cross section for a given oscillator strength f and line
     profile phi """
     sigma = np.power(c.e.si,2)/(4.*c.eps0*c.m_e*c.c) * f * phi
-    return sigma
+    return sigma.to(u.m**2)
 
 def HO(y,t):
     dy = [0,0]

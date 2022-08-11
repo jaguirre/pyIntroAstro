@@ -10,7 +10,8 @@ import scipy.integrate as integrate
 from scipy.signal import fftconvolve as fconv
 #from astropy.analytic_functions import blackbody_lambda
 #from astropy.analytic_functions import blackbody_nu
-from astropy.modeling.blackbody import blackbody_lambda, blackbody_nu
+from astropy.modeling.models import BlackBody
+#blackbody_lambda, blackbody_nu
 from decimal import Decimal
 
 # Some decorators for dealing with astropy units
@@ -71,13 +72,23 @@ def Uprint(quantity,style='latex'):
     return x
 
 @u.quantity_input
-def B_lambda(wavelength : u.m ,T : u.K) -> u.W/u.m**3/u.steradian:
-    B = blackbody_lambda(wavelength,T)
+def B_lambda(T : u.K, wavelength : u.m) -> u.W/u.m**3/u.steradian:
+    """ This is just a thin wrapper to ensure SI units upon output and return
+    of values rather than a function.  Obviously, you're free to use the functional form 
+    native to astropy.  Speaking of, astropy can't seem to decide where they want to put this
+    particular function; this is compatible with 5.1.  """
+
+    B = BlackBody(temperature = T, scale = 1*u.W/u.m**3/u.steradian)(wavelength)
     return B
 
 @u.quantity_input
-def B_nu(frequency : u.Hz,T : u.K) -> u.W/u.m**2/u.steradian/u.Hz:
-    B = blackbody_nu(frequency,T)
+def B_nu(T : u.K, frequency : u.Hz) -> u.W/u.m**2/u.steradian/u.Hz:
+    """ This is just a thin wrapper to ensure SI units upon output and return
+    of values rather than a function.  Obviously, you're free to use the functional form 
+    native to astropy.  Speaking of, astropy can't seem to decide where they want to put this
+    particular function; this is compatible with 5.1.  """
+
+    B = BlackBody(temperature = T, scale = 1*u.W/u.m**2/u.steradian/u.Hz)(frequency)
     return B
 
 """This is a template for a function that does all the things I want:
@@ -726,3 +737,37 @@ def TwoBody2DCartIVP(tau, init):
     theta = np.unwrap(np.arctan2(Y, X))
     
     return {'X': X, 'VX': orbit.y[1,:], 'Y': Y, 'VY': orbit.y[3,:], 'tau': orbit.t, 'init': init, 'R': R, 'theta': theta}
+
+def MSLuminosity(mass : u.kg) -> u.W:
+    
+    # express in terms of solar mass; ensure array functions behave properly by converting to an array
+    m = (np.array(mass)*u.kg / c.M_sun).to(u.dimensionless_unscaled).value
+    
+    # a function to smoothly transition between the two power laws
+    smooth_transition = 1/2*(np.tanh((m-0.7)/0.1)+1)
+       
+    exponent = 2.62 + smooth_transition*(3.92-2.62)
+    prefac = (0.35 + smooth_transition*(1.02 - 0.35))*c.L_sun
+    
+    return prefac * np.power(m, exponent)
+
+def MSRadius(mass : u.kg) -> u.m:
+    
+    # express in terms of solar mass; ensure array functions behave properly by converting to an array
+    m = (np.array(mass)*u.kg / c.M_sun).to(u.dimensionless_unscaled).value
+    
+    smooth_transition = 1/2*(np.tanh((m-1.66)/0.1)+1)
+       
+    exponent = 0.945 + smooth_transition*(0.555 - 0.945)
+    prefac = (1.06 + smooth_transition*(1.33 - 1.06))*c.R_sun
+    
+    return prefac * np.power(m, exponent)
+
+def MSTemperature(mass : u.kg) -> u.K:
+    
+    L = MSLuminosity(mass)
+    R = MSRadius(mass)
+    
+    T = np.power(L / (4.*np.pi*np.power(R,2)*c.sigma_sb), 1/4)
+    
+    return T

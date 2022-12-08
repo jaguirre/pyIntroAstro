@@ -1,6 +1,6 @@
 Python package for teaching introductory astrophysics by James Aguirre.
 
-''Installation intructions''
+**Installation intructions**
 
 Works best with an Anaconda python installation.
 

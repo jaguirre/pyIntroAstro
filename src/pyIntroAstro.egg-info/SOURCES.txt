@@ -2,8 +2,10 @@ LICENSE
 README.md
 pyproject.toml
 setup.cfg
-src/example_package/__init__.py
-src/example_package/example.py
+src/pyIntroAstro/__init__.py
+src/pyIntroAstro/astrophysics.py
+src/pyIntroAstro/formatting.py
+src/pyIntroAstro/observing.py
 src/pyIntroAstro.egg-info/PKG-INFO
 src/pyIntroAstro.egg-info/SOURCES.txt
 src/pyIntroAstro.egg-info/dependency_links.txt

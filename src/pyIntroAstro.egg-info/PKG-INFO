@@ -5,9 +5,7 @@ Summary: Introduction to Astrophysics software
 Home-page: https://github.com/jaguirre/pyIntroAstro
 Author: James Aguirre
 Author-email: jaguirre@sas.upenn.edu
-License: UNKNOWN
-Project-URL: Bug Tracker, https://github.com/pypa/sampleproject/issues
-Platform: UNKNOWN
+Project-URL: Bug Tracker, https://github.com/jaguirre/pyIntroAstro/issues
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: BSD-2 License
 Classifier: Operating System :: OS Independent
@@ -15,6 +13,18 @@ Requires-Python: >=3.6
 Description-Content-Type: text/markdown
 License-File: LICENSE
 
-Python package for teaching Introduction to Astrophysics by James Aguirre.
+Python package for teaching introductory astrophysics by James Aguirre.
+
+**Installation intructions**
+
+Works best with an Anaconda python installation.
+
+Clone the git repo.
+
+`cd` into the directory.
+
+`pip install .`
+
+You can then import.  See `notebooks/UsageExamples` for examples.
 
 

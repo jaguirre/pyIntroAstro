@@ -2,6 +2,35 @@ import numpy as np
 from astropy import units as u, constants as c
 from scipy.integrate import solve_ivp
 
+@u.quantity_input(M=u.kg, a=u.m, P=u.s)
+def Keplers3rdNewton(M=0*u.kg, a=0*u.m, P=0*u.s, output_unit = None):
+    """ Calculate Newton's version of Kepler's Third Law, given any two of the
+    three variables mass M, semimajor axis a, period P """
+    fac = np.power(2.*np.pi,2)/c.G
+    if ((M.value > 0) & (a.value > 0) & (P.value == 0)):
+        P = np.sqrt(fac*np.power(a,3)/M)
+        # Surely this can be generalized a bit
+        if (output_unit is None):
+            P = P.to(u.s)
+        else:
+            P = P.to(output_unit)
+        returnval = P
+    if ((M.value > 0) & (a.value == 0) & (P.value > 0)):
+        a = np.power(np.power(P,2)/(fac/M),1./3.)
+        if (output_unit is None):
+            a = a.to(u.m)
+        else:
+            a = a.to(output_unit)
+        returnval = a
+    if ((M.value == 0) & (a.value > 0) & (P.value > 0)):
+        M = np.power(a,3)/np.power(P,2)*fac
+        if (output_unit is None):
+            M = M.to(u.kg)
+        else:
+            M = M.to(output_unit)
+        returnval = M
+    return returnval
+
 # The two-body dimensionless differential equation solver
 def TwoBody2DCartEqMo(tau, Vec):
     
@@ -82,4 +111,30 @@ def SemiMajorAxis(m1, m2, E):
     a = a.to(u.meter)
     
     return a
+
+# --- Circular orbit formulae
+@u.quantity_input
+def V_circ(M : u.kg, R : u.m) -> u.m/u.s:
+
+    ''' M is the sum of the masses
+        R is their separation '''
+
+    v = (np.sqrt(c.G * M / R)).to(u.m / u.s)
+
+    return v
+
+@u.quantity_input
+def E_circ(M : u.kg, mu : u.kg, R: u.m) -> u.J:
+
+    E = - (c.G * M * mu / (2 * R)).to(u.J)
+
+    return E
+
+@u.quantity_input
+def L_circ(M : u.kg, mu : u.kg, R: u.m) -> u.J*u.s:
+
+    L = (mu * np.sqrt(c.G * M * R)).to(u.J*u.s)
+
+    return L
+
 

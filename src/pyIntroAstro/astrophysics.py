@@ -41,7 +41,9 @@ def pol2cart(rho, phi):
     return(x, y)
 
 
-def EllipsePolar(theta, a, e):
+def ellipse_polar(theta, a, e):
+
+    ''' Implement a simple version of the polar form of the ellipse equation '''
 
     r = a * (1-np.power(e,2))/(1+e*np.cos(theta))
 
@@ -158,9 +160,11 @@ def SchwarzschildRadius(R=0*u.m, M=0.*u.kg):
         val = (2.*c.G*M/np.power(c.c,2)).to(u.m)
     return val
                
-def GravForce(m1,m2,r):
+def grav_force(m1,m2,r):
+    
     F = c.G * m1 * m2 / np.power(r,2)
     F = F.to(u.Newton)
+    
     return F
 
 def alphaLaneEmden(n,P_c,rho_c):

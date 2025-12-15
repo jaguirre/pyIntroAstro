@@ -4,12 +4,14 @@ Python package for teaching introductory astrophysics by James Aguirre.
 
 Works best with an Anaconda python installation.
 
-Clone the git repo.
+Clone the git repo. 
+
+Activate your preferred conda environment.
 
 `cd` into the directory.
 
 `pip install .`
 
-You can then import.  See `notebooks/UsageExamples` for examples.
+You can then import.  See `notebooks/UsageExamples` for some examples.
 
 
